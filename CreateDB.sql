@@ -100,6 +100,23 @@ WITH RECURSIVE main_data_collector as (
 select distinct email,phoneNumber,id,linkPrecedence  from main_data_collector;
 END $$
 
+
+
+CREATE PROCEDURE get_contact_metadata(
+    d_email VARCHAR(100) ,
+    d_phoneNumber VARCHAR(20)
+) BEGIN
+    select 
+        count(*) as row_count,
+        case 
+            when email = d_email then "Email Match"
+            when phoneNumber = d_phoneNumber then "Number Match"
+            else "Both Match"
+        end as match_type
+    from contact
+    where email = d_email or phoneNumber = d_phoneNumber;   
+END $$
+
 DELIMITER ; 
 CALL populate_db_with_test_data();
 -- SELECT does_customer_alread_exist("mcfly@hillvalley.edu", "122456");
