@@ -103,7 +103,19 @@ CREATE PROCEDURE get_contact_metadata(
 ) BEGIN
     select 
         count(*) as row_count,
-        if(email = d_email and phoneNumber = d_phoneNumber, true,false) as BothMatch,
+        if(
+			(
+				email = d_email or 
+                (
+					email is null and d_email is null
+				)
+			) and 
+            (
+				phoneNumber = d_phoneNumber or 
+                (
+					phoneNumber is null and d_phoneNumber is null
+				)
+			), true,false) as BothMatch,
         if(email = d_email,true,false ) as MailMatch,
         if(phoneNumber = d_phoneNumber, true,false) as NumberMatch
     from contact
@@ -117,5 +129,5 @@ CALL populate_db_with_test_data();
 -- SELECT does_customer_alread_exist("mcfly@hillvalley.edu", "122456");
 -- SELECT does_customer_alread_exist("mcfly@hillvalley.edu", null);
 -- SELECT does_customer_alread_exist(NULL, "123456");
- CALL get_all_assosiated_contacts_for_this_entity("lorraine@hillvalley.edu", null);
--- CALL get_contact_metadata("lorraine@hillvalley.edu", "123456")
+-- CALL get_all_assosiated_contacts_for_this_entity("lorraine@hillvalley.edu", null);
+ CALL get_contact_metadata("raghkumd", null);
