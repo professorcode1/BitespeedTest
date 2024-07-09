@@ -147,4 +147,4 @@ export {
     insert_secondary_into_db_and_get_result,
     merge_the_two_lists_and_return_result
 }
-export type {TRequestBody, TIdentifyResult};
+export type {TRequestBody, TIdentifyResult, TContactMetadata};
