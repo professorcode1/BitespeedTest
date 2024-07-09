@@ -80,8 +80,8 @@ WITH RECURSIVE main_data_collector as (
     FROM contact  
     INNER JOIN main_data_collector 
     ON (
-		main_data_collector.phoneNumber = contact.phoneNumber
-        OR main_data_collector.email = contact.email
+		main_data_collector.linkedId = contact.id
+        OR main_data_collector.id = contact.linkedId
 	) and not (
 		JSON_CONTAINS(
 			encountered_ids, 
@@ -117,5 +117,5 @@ CALL populate_db_with_test_data();
 -- SELECT does_customer_alread_exist("mcfly@hillvalley.edu", "122456");
 -- SELECT does_customer_alread_exist("mcfly@hillvalley.edu", null);
 -- SELECT does_customer_alread_exist(NULL, "123456");
--- CALL get_all_assosiated_contacts_for_this_entity("lorraine@hillvalley.edu", null);
-CALL get_contact_metadata("lorraine@hillvalley.edu", "123456")
+ CALL get_all_assosiated_contacts_for_this_entity("lorraine@hillvalley.edu", null);
+-- CALL get_contact_metadata("lorraine@hillvalley.edu", "123456")
