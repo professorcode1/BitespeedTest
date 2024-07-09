@@ -24,6 +24,16 @@ BEGIN
     END IF;
 END$$
 
+
+CREATE TRIGGER update_updatedAt_in_contact
+BEFORE UPDATE ON `contact`
+FOR EACH ROW
+BEGIN
+    SET NEW.updatedAt = CURRENT_TIMESTAMP;
+END$$
+
+
+
 CREATE PROCEDURE populate_db_with_test_data()
 BEGIN 
 		INSERT INTO 
