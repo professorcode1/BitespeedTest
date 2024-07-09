@@ -107,7 +107,9 @@ function sort_the_contact_entities(left:TContactBase, right:TContactBase):number
 }
 async function insert_secondary_into_db_and_get_result(req_body:TRequestBody):Promise<TIdentifyResult>{
     const contact_data = await get_all_assosiated_contacts_for_this_entity(req_body);
-    return transform_raw_db_data_to_result(contact_data);
+    if(req_body.email === undefined || req_body.phoneNumber === undefined){
+        return transform_raw_db_data_to_result(contact_data);
+    }
     const latest_contact = contact_data.sort(sort_the_contact_entities)[contact_data.length-1]
     const {insertId} = await async_push_query("insert into contact set ?", {...req_body, linkedId:latest_contact.id, linkPrecedence:"secondary"} as TContactBase, db_connection);
     const result = transform_raw_db_data_to_result(contact_data);
@@ -120,24 +122,12 @@ async function merge_the_two_lists_and_return_result(left_list:TContactBase[], r
     const new_list = [...left_list, ...right_list];
     new_list.sort(sort_the_contact_entities);
     const entry_needing_precedence_update = new_list.map((e,i)=>[e,i] as [TContactBase, number]).find(([e,i])=>e.linkPrecedence === "primary" && i>0)![0].id!;
-    let update_transaction = `
-        UPDATE contact SET linkPrecedence  = 'secondary',updatedAt = CURRENT_TIMESTAMP  WHERE id = ${entry_needing_precedence_update};
-    `;
+    await async_push_query(`UPDATE contact SET linkPrecedence  = ?,updatedAt = CURRENT_TIMESTAMP  WHERE id = ?;`, ['secondary', entry_needing_precedence_update], db_connection);
     for(let i =1 ; i<new_list.length ; i++){
         if(new_list[i].linkedId === new_list[i-1].id) continue;
-        update_transaction += `
-            UPDATE contact SET linkedId = ${new_list[i-1].id} WHERE id = ${new_list[i].id};
-        `;
+        await async_push_query(`UPDATE contact SET linkedId = ? WHERE id = ?`, [new_list[i-1].id, new_list[i].id], db_connection);
         new_list[i].linkedId = new_list[i-1].id;
     }
-    db_connection.beginTransaction((error)=>{
-        if(error) throw error;
-        async_get_query(update_transaction, db_connection);
-        db_connection.commit((error)=>{
-            if(!Boolean(error)) return ;
-            return db_connection.rollback(()=>{throw error;});
-        })
-    })
     return transform_raw_db_data_to_result(new_list);
 }
 
