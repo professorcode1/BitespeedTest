@@ -51,5 +51,58 @@ BEGIN
             )
         ;
 END $$
+
+CREATE FUNCTION does_contact_alread_exist(
+    d_email VARCHAR(100),
+    d_phoneNumber VARCHAR(20)
+) RETURNS BOOLEAN   
+DETERMINISTIC
+READS SQL DATA
+BEGIN   
+DECLARE res BOOLEAN DEFAULT FALSE;  
+SELECT count(id)>0 INTO res FROM contact 
+    WHERE phoneNumber = d_phoneNumber 
+    AND email = d_email;  
+RETURN res;  
+END $$  
+
+CREATE PROCEDURE get_all_assosiated_contacts_for_this_entity(
+    d_email VARCHAR(100) ,
+    d_phoneNumber VARCHAR(20)
+) BEGIN
+WITH RECURSIVE main_data_collector as (
+    SELECT email,phoneNumber,id,linkPrecedence , json_array(id) as encountered_ids
+    FROM contact 
+    WHERE phoneNumber = d_phoneNumber or email = d_email
+        union all 
+    SELECT 
+		contact.email,
+        contact.phoneNumber,
+        contact.id, 
+        contact.linkPrecedence,
+        json_merge(
+			json_array(contact.id), 
+            encountered_ids
+		)
+    FROM contact  
+    INNER JOIN main_data_collector 
+    ON (
+		main_data_collector.phoneNumber = contact.phoneNumber
+        OR main_data_collector.email = contact.email
+	) and not (
+		JSON_CONTAINS(
+			encountered_ids, 
+            CONVERT(contact.id,char), 
+            '$'
+		)
+	)
+)
+select distinct email,phoneNumber,id,linkPrecedence  from main_data_collector;
+END $$
+
 DELIMITER ; 
 CALL populate_db_with_test_data();
+-- SELECT does_customer_alread_exist("mcfly@hillvalley.edu", "122456");
+-- SELECT does_customer_alread_exist("mcfly@hillvalley.edu", null);
+-- SELECT does_customer_alread_exist(NULL, "123456");
+CALL get_all_assosiated_contacts_for_this_entity("lorraine@hillvalley.edu", null);
