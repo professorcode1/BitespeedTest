@@ -51,7 +51,10 @@ type TContactBase = {
         linkPrecedence:'secondary',
     }
 )
-
+function onlyUnique<T>(value:T, index:number, array:T[]) {
+    return array.indexOf(value) === index;
+  }
+  
 async function get_all_assosiated_contacts_for_this_entity(req_body:TRequestBody):Promise<TContactBase[]>{
     return (await async_get_query(
         `CALL get_all_assosiated_contacts_for_this_entity
@@ -75,8 +78,8 @@ function transform_raw_db_data_to_result(raw_data:TContactBase[]):TIdentifyResul
     return {
         contact:{
             primaryContatctId:primary_element.id, 
-            emails:raw_data.map(x => x.email).filter(x => x !== null), 
-            phoneNumbers:raw_data.map(x => x.phoneNumber).filter(x => x !== null), 
+            emails:raw_data.map(x => x.email).filter(x => x !== null).filter(onlyUnique), 
+            phoneNumbers:raw_data.map(x => x.phoneNumber).filter(x => x !== null).filter(onlyUnique), 
             secondaryContactIds:raw_data.map(x => x.id).filter(x=> x !== primary_element.id)
         }
     }
@@ -104,11 +107,12 @@ function sort_the_contact_entities(left:TContactBase, right:TContactBase):number
 }
 async function insert_secondary_into_db_and_get_result(req_body:TRequestBody):Promise<TIdentifyResult>{
     const contact_data = await get_all_assosiated_contacts_for_this_entity(req_body);
+    return transform_raw_db_data_to_result(contact_data);
     const latest_contact = contact_data.sort(sort_the_contact_entities)[contact_data.length-1]
     const {insertId} = await async_push_query("insert into contact set ?", {...req_body, linkedId:latest_contact.id, linkPrecedence:"secondary"} as TContactBase, db_connection);
     const result = transform_raw_db_data_to_result(contact_data);
-    result.contact.emails = [...result.contact.emails, ...array_from_nullable_element(req_body.email)];
-    result.contact.phoneNumbers = [...result.contact.phoneNumbers, ...array_from_nullable_element(req_body.phoneNumber)];
+    result.contact.emails = [...result.contact.emails, ...array_from_nullable_element(req_body.email)].filter(onlyUnique);
+    result.contact.phoneNumbers = [...result.contact.phoneNumbers, ...array_from_nullable_element(req_body.phoneNumber)].filter(onlyUnique);
     result.contact.secondaryContactIds = [...result.contact.secondaryContactIds, insertId]
     return result;
 }
