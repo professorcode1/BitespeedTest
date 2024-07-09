@@ -108,13 +108,13 @@ CREATE PROCEDURE get_contact_metadata(
 ) BEGIN
     select 
         count(*) as row_count,
-        case 
-            when email = d_email then "Email Match"
-            when phoneNumber = d_phoneNumber then "Number Match"
-            else "Both Match"
-        end as match_type
+        if(email = d_email and phoneNumber = d_phoneNumber, true,false) as BothMatch,
+        if(email = d_email,true,false ) as MailMatch,
+        if(phoneNumber = d_phoneNumber, true,false) as NumberMatch
     from contact
-    where email = d_email or phoneNumber = d_phoneNumber;   
+    where email = d_email or phoneNumber = d_phoneNumber
+    group by BothMatch, MailMatch,NumberMatch
+    ;
 END $$
 
 DELIMITER ; 
@@ -122,4 +122,5 @@ CALL populate_db_with_test_data();
 -- SELECT does_customer_alread_exist("mcfly@hillvalley.edu", "122456");
 -- SELECT does_customer_alread_exist("mcfly@hillvalley.edu", null);
 -- SELECT does_customer_alread_exist(NULL, "123456");
-CALL get_all_assosiated_contacts_for_this_entity("lorraine@hillvalley.edu", null);
+-- CALL get_all_assosiated_contacts_for_this_entity("lorraine@hillvalley.edu", null);
+CALL get_contact_metadata("lorraine@hillvalley.edu", "123456")
