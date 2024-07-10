@@ -130,6 +130,10 @@ async function merge_the_two_lists_and_return_result(left_list:TContactBase[], r
     }
     return transform_raw_db_data_to_result(new_list);
 }
+async function number_of_rows():Promise<number>{
+    const res = await async_get_query("select count(*) from contact", db_connection);
+    return res[0]['count(*)'];
+}
 
 export {
     db_connection, 
@@ -139,6 +143,6 @@ export {
     insert_primary_into_db_and_get_result,
     transform_raw_db_data_to_result,
     insert_secondary_into_db_and_get_result,
-    merge_the_two_lists_and_return_result
+    merge_the_two_lists_and_return_result, number_of_rows
 }
 export type {TRequestBody, TIdentifyResult, TContactMetadata};

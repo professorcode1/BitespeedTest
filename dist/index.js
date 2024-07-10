@@ -18,7 +18,7 @@ const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const db_1 = require("./db");
 const app = (0, express_1.default)();
-const port = 3000;
+const port = 5000;
 app.use(express_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: true }));
 function validate_req_object(req_body) {
@@ -89,6 +89,9 @@ function identify_post_request(req_body, res) {
         return res.send(result);
     });
 }
+app.get('/bitspeedtest/identify', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    return res.status(200).send({ x: yield (0, db_1.number_of_rows)() });
+}));
 app.post('/bitspeedtest/identify', (req, res) => {
     const req_body = req.body;
     try {

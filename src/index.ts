@@ -2,11 +2,11 @@ import { configure_dotnev } from './configure_dotenv';
 configure_dotnev()
 import express, { Request, Response } from 'express';
 import bodyParser from "body-parser";
-import { get_all_assosiated_contacts_for_this_entity, get_contact_metadata, insert_primary_into_db_and_get_result, insert_secondary_into_db_and_get_result, merge_the_two_lists_and_return_result, TContactMetadata, TIdentifyResult, transform_raw_db_data_to_result, TRequestBody } from './db';
+import { get_all_assosiated_contacts_for_this_entity, get_contact_metadata, insert_primary_into_db_and_get_result, insert_secondary_into_db_and_get_result, merge_the_two_lists_and_return_result, number_of_rows, TContactMetadata, TIdentifyResult, transform_raw_db_data_to_result, TRequestBody } from './db';
 
 
 const app = express();
-const port = 3000;
+const port = 5000;
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -88,7 +88,9 @@ async function identify_post_request(req_body:TRequestBody, res:Response){
   const result = await merge_the_two_lists_and_return_result(email_based_entries, number_based_entries);
   return res.send(result);
 }
-
+app.get('/bitspeedtest/identify', async (req, res)=>{
+    return res.status(200).send({x:await number_of_rows()});
+})
 app.post('/bitspeedtest/identify', (req, res) => {
   const req_body:TRequestBody = req.body;
   try {

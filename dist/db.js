@@ -20,6 +20,7 @@ exports.insert_primary_into_db_and_get_result = insert_primary_into_db_and_get_r
 exports.transform_raw_db_data_to_result = transform_raw_db_data_to_result;
 exports.insert_secondary_into_db_and_get_result = insert_secondary_into_db_and_get_result;
 exports.merge_the_two_lists_and_return_result = merge_the_two_lists_and_return_result;
+exports.number_of_rows = number_of_rows;
 const mysql_1 = __importDefault(require("mysql"));
 const util = require('util');
 function async_push_query(sql_query, info, connection) {
@@ -120,5 +121,11 @@ function merge_the_two_lists_and_return_result(left_list, right_list) {
             new_list[i].linkedId = new_list[i - 1].id;
         }
         return transform_raw_db_data_to_result(new_list);
+    });
+}
+function number_of_rows() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const res = yield async_get_query("select count(*) from contact", db_connection);
+        return res[0]['count(*)'];
     });
 }
